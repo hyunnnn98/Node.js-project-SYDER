@@ -1,5 +1,7 @@
 # Syder_2020-nodeTestServer
 
+사용기술: Android, Node, AWS Lightsail
+
 ### 2020.04.10
 ```
 1. 테스트 버젼 node 서버 구축 시작.
