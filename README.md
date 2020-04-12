@@ -1,6 +1,6 @@
 # Syder_2020-nodeTestServer
 
-사용기술: Android, Node, AWS Lightsail
+사용기술: Android, Node, AWS Lightsail, AWS EC2
 
 ### 2020.04.10
 ```
@@ -19,5 +19,7 @@
 ### 2020.04.12
 ```
 1. 노드 서버 리펙토링. ( 소켓통신 구현 부분 따로 분리 )
-2. 
+2. 기존 Lightsail 서비스 이용 종료 ( 프리티어 기한 문제 )
+3. AWS EC2 도입 ( 우분투 환경에 노드, 몽고 셋팅 완료 )
+4. EC2에 완성된 서버 배포. ( 테스트 성공 )
 ```
