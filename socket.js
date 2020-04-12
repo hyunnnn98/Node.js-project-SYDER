@@ -1,4 +1,5 @@
 const SocketIO = require('socket.io');
+const axios = require('axios');
 
 module.exports = (server, app) => {
     const io = SocketIO(server);
@@ -24,9 +25,22 @@ module.exports = (server, app) => {
         });
 
         // from Client Object
-        socket.on('say', (messageData) => {
+        socket.on('say', async (messageData) => {
             console.log("From Client :", messageData);
             io.emit('answer', "response Data!!");
+
+            const data = {
+                message: messageData,
+            };
+
+            await axios
+            .post("http://49.143.16.46/api/test", data)
+            .then(res => {
+                console.log(res);
+            })
+            .catch(error => {
+                console.log(error);
+            })
         });
 
         // to Client Object
