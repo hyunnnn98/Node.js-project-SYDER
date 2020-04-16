@@ -7,19 +7,32 @@ module.exports = (server, app) => {
     // 접근할땐 req.app.get('io')로 접근이 가능하다.
     
     app.set('io', io);
-
+    
+    const cars  = [];
     let numberOfUser = 0;   // count of User
 
     io.on('connection', (socket) => {
         numberOfUser++;
-        const req = socket.request;
-        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const req   = socket.request;
+        const ip    = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const car   = '';
+
         console.log(`New Client Connect!!`, ip, socket.id);
-        console.log(`* NOW USER: ${numberOfUser} people`)
-        console.log('==========================')
+        console.log(`* NOW USER: ${numberOfUser} people`);
+
+        // from HardWare Connect
+        socket.on('connectCar', (connectCar) => {
+            car = connectCar;
+            cars.push(connectCar);
+            console.log(`* NOW CAR: ${cars}`);
+            console.log('==========================')
+        });
 
         socket.on('disconnect', () => {
+            // delete connectedCar of index
+            cars.splice(cars.indexOf(car), 1);
             console.log('Client Disconnect', ip, socket.id);
+            console.log(`* NOW CAR: ${cars}`);
             clearInterval(socket.interval);
             numberOfUser--;
         });
@@ -53,5 +66,7 @@ module.exports = (server, app) => {
             io.emit("location", JSON.stringify(data));
             console.log('(location data) send to Client!!');
         });
+
+
     });
 }

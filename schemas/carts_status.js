@@ -19,15 +19,9 @@ const statusSchema = new Schema({
         max: 100,
         required: true,
     },
-    cart_distance: Number,
-    now_lat: {                  // Save의 now_lat를 외래키로 가져왔다.
-        type: ObjectId,
-        ref: 'Socket'
-    },
-    now_lng: {                  // Save의 now_lng를 외래키로 가져왔다.
-        type: ObjectId,
-        ref: 'Socket'
-    },
+    wapoint_path: Number,
+    now_lat: Number,
+    now_lng: Number
 });
 
 module.exports = mongoose.model('Status', statusSchema);
