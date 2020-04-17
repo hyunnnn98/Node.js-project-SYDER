@@ -15,20 +15,33 @@ module.exports = (server, app) => {
         numberOfUser++;
         const req   = socket.request;
         const ip    = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-        const car   = '';
+        let   car   = '';
 
         console.log(`New Client Connect!!`, ip, socket.id);
         console.log(`* NOW USER: ${numberOfUser} people`);
 
         // from HardWare Connect
         socket.on('connectCar', (connectCar) => {
+            let check = true;
             car = connectCar;
-            cars.push(connectCar);
-            console.log(`* NOW CAR: ${cars}`);
-            console.log('==========================')
+
+            // if - same name car come to Server => quit out of Server.
+            for (car of cars) {
+                if (car == connectCar) {
+                    socket.emit('answer', `This car is already in the Server!!`);
+                    check = false;
+                    break;
+                }
+            }
+
+            if (check === true) {
+                cars.push(connectCar);
+                console.log(`* NOW CAR: ${cars}`);
+                console.log('==========================')
+            }
         });
 
-        socket.on('disconnect', () => {
+         socket.on('disconnect', () => {
             // delete connectedCar of index
             cars.splice(cars.indexOf(car), 1);
             console.log('Client Disconnect', ip, socket.id);
@@ -38,22 +51,22 @@ module.exports = (server, app) => {
         });
 
         // from Client Object
-        socket.on('say', async (messageData) => {
-            console.log("From Client :", messageData);
-            io.emit('answer', "response Data!!");
+        socket.on('say', (messageData) => {
+            console.log(`From ${car} :`, messageData);
+            socket.emit('answer', `${car} : response Data!!`);
 
             const data = {
                 message: messageData,
             };
 
-            await axios
-            .post("http://49.143.16.46/api/test", data)
-            .then(res => {
-                console.log(res);
-            })
-            .catch(error => {
-                console.log(error);
-            })
+            // await axios
+            // .post("http://49.143.16.46/api/test", data)
+            // .then(res => {
+            //     console.log(res);
+            // })
+            // .catch(error => {
+            //     console.log(error);
+            // })
         });
 
         // to Client Object
@@ -63,7 +76,7 @@ module.exports = (server, app) => {
                 lng: "128.62208554408"
             };
 
-            io.emit("location", JSON.stringify(data));
+            socket.emit("location", JSON.stringify(data));
             console.log('(location data) send to Client!!');
         });
 
