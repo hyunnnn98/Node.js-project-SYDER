@@ -8,16 +8,17 @@ module.exports = (server, app) => {
     
     app.set('io', io);
     
-    const cars  = [];
-    let numberOfUser = 0;   // count of User
-
+    let cars            = [];
+    let numberOfUser    = 0;   // count of User
+    
     io.on('connection', (socket) => {
         numberOfUser++;
+        let   car   = '';
         const req   = socket.request;
         const ip    = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-        let   car   = '';
 
         console.log(`New Client Connect!!`, ip, socket.id);
+        // 소켓 아이디를 이용해서  ( id, 차량 호수 ) 매칭시키기.
         console.log(`* NOW USER: ${numberOfUser} people`);
 
         // from HardWare Connect
@@ -29,6 +30,7 @@ module.exports = (server, app) => {
             for (car of cars) {
                 if (car == connectCar) {
                     socket.emit('answer', `This car is already in the Server!!`);
+                    console.log("중복 사용자 발생함 =>", connectCar);
                     check = false;
                     break;
                 }
@@ -41,11 +43,16 @@ module.exports = (server, app) => {
             }
         });
 
-         socket.on('disconnect', () => {
+        // Client out of Car connect
+        socket.on('carDisconnect', (connectedCar) => {
             // delete connectedCar of index
             cars.splice(cars.indexOf(car), 1);
+            console.log(`* NOW CAR: ${connectedCar}`);
+        })
+
+        // Client out of Server connect
+         socket.on('disconnect', () => {
             console.log('Client Disconnect', ip, socket.id);
-            console.log(`* NOW CAR: ${cars}`);
             clearInterval(socket.interval);
             numberOfUser--;
         });
@@ -55,10 +62,9 @@ module.exports = (server, app) => {
             console.log(`From ${car} :`, messageData);
             socket.emit('answer', `${car} : response Data!!`);
 
-            const data = {
-                message: messageData,
-            };
-
+            // const data = {
+            //     message: messageData,
+            // };
             // await axios
             // .post("http://49.143.16.46/api/test", data)
             // .then(res => {

@@ -1,9 +1,9 @@
-const express = require('express');
-const path = require('path');
-const flash = require('connect-flash');
+const express   = require('express');
+const path      = require('path');
+const flash     = require('connect-flash');
 require('dotenv').config()
 
-const webSocket = require('./socket');
+const webSocket   = require('./socket');
 const indexRouter = require('./routes');
 
 const app = express();
@@ -18,7 +18,8 @@ app.all('/*', function (req, res, next) {
 // pug로 웹페이지 통신.
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
-app.set('port', process.env.PORT || 3333);
+
+app.set('port', process.env.PORT);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
