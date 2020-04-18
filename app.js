@@ -3,10 +3,12 @@ const path      = require('path');
 const flash     = require('connect-flash');
 require('dotenv').config()
 
-const webSocket   = require('./socket');
-const indexRouter = require('./routes');
+const webSocket     = require('./socket');
+const indexRouter   = require('./routes');
+const mongoConnect  = require('./schemas');
 
 const app = express();
+mongoConnect();
 
 // CORS 모든 도메인 권한 풀기.
 app.all('/*', function (req, res, next) {

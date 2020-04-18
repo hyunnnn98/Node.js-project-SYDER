@@ -1,15 +1,16 @@
 const mongoose = require('mongoose');
 
-const { MONGO_ID, MONGO_PASSWORD, SERVER_IP, MODE_ENV } = process.env;
-const MONGO_URL = `mongodb://${MONGO_ID}:${MONGO_PASSWORD}@${SERVER_IP}:27017/socket_service`;
+const { MONGO_ID, MONGO_PASSWORD, SERVER_IP, NODE_ENV } = process.env;
+const MONGO_URL = `mongodb://${MONGO_ID}:${MONGO_PASSWORD}@localhost:27017/admin`;
 
 module.exports = () => {
     const connect = () => {
+
         if (NODE_ENV !== 'production') {
             mongoose.set('debug', true);
         }
         mongoose.connect(MONGO_URL, {
-            dbName: 'syder2020',
+            dbName: 'SYDER',
         }, (error) => {
             if (error) {
                 console.log('데이터베이스 연결 에러.', error);
@@ -20,6 +21,7 @@ module.exports = () => {
     };
     connect();
 
+    // 몽구스 커넥션에 이벤트 리스너 적용.
     mongoose.connection.on('error', (error) => {
         console.error('몽고디비 연결 에러', error);
     });
@@ -28,7 +30,5 @@ module.exports = () => {
         connect();
     });
 
-    require('./carts_status');
-    require('./carts_location');
-
-}
+    require('./car_status');
+};
