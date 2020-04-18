@@ -1,7 +1,7 @@
 const SocketIO = require('socket.io');
 const axios = require('axios');
 // mongo collection
-let StatusInfo = require('./schemas/car_status');
+// let StatusInfo = require('./schemas/car_status');
 
 module.exports = (server, app) => {
     const io = SocketIO(server);
@@ -93,13 +93,14 @@ module.exports = (server, app) => {
                     }
                 ] 
             });
-            info.save()
-                .then((res) => {
-                    console.log(res);
-                })
-                .catch((err) => {
-                    console.log("DB 저장 실패!!!!", err);
-                });
+            // AWS 몽고DB 연결 (X).
+            // info.save()
+            //     .then((res) => {
+            //         console.log(res);
+            //     })
+            //     .catch((err) => {
+            //         console.log("DB 저장 실패!!!!", err);
+            //     });
 
             socket.emit("location", JSON.stringify(data));
             console.log('(location data) send to Client!!');

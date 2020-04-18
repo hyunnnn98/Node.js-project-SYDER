@@ -8,7 +8,7 @@ const indexRouter   = require('./routes');
 const mongoConnect  = require('./schemas');
 
 const app = express();
-mongoConnect();
+// mongoConnect();      // AWS 몽고DB 연결 (X).
 
 // CORS 모든 도메인 권한 풀기.
 app.all('/*', function (req, res, next) {
