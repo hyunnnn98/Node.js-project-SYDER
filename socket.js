@@ -13,66 +13,52 @@ module.exports = (server, app) => {
     
     io.on('connection', (socket) => {
         numberOfUser++;
-        let   car   = '';
-        const req   = socket.request;
-        const ip    = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const req       = socket.request;
+        const ip        = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const socketID  = socket.id;
 
         console.log(`New Client Connect!!`, ip, socket.id);
-        // 소켓 아이디를 이용해서  ( id, 차량 호수 ) 매칭시키기.
         console.log(`* NOW USER: ${numberOfUser} people`);
-
+        
         // from HardWare Connect
-        socket.on('connectCar', (connectCar) => {
-            let check = true;
-            car = connectCar;
-
-            // if - same name car come to Server => quit out of Server.
-            for (car of cars) {
-                if (car == connectCar) {
-                    socket.emit('answer', `This car is already in the Server!!`);
-                    console.log("중복 사용자 발생함 =>", connectCar);
-                    check = false;
-                    break;
-                }
+        socket.on('connectCar', (connectCar) => {       
+            // 소켓 아이디를 이용해서  ( id, 차량 호수 ) 매칭시키기.
+            let data = {
+                id: socketID,
+                name: connectCar,
+                status: "운행대기",
             }
-
-            if (check === true) {
-                cars.push(connectCar);
-                console.log(`* NOW CAR: ${cars}`);
-                console.log('==========================')
-            }
+            cars.push(data);
+            console.log(`* NOW CAR: ${listOfCar()}`);
+            console.log('==========================')
         });
 
         // Client out of Car connect
         socket.on('carDisconnect', (connectedCar) => {
             // delete connectedCar of index
-            cars.splice(cars.indexOf(car), 1);
-            console.log(`* NOW CAR: ${connectedCar}`);
+            io.emit('answer', `${connectedCar} 차량 접속 해제!`);
+            for (car in cars) {
+                if (cars[car].id == socketID) {
+                    console.log("* 선택된 car 번호 : ", car)
+                    cars.splice(car, 1);
+                }
+            };
+            console.log(`* CAR Disconnect : ${connectedCar}`);
         })
 
         // Client out of Server connect
          socket.on('disconnect', () => {
-            console.log('Client Disconnect', ip, socket.id);
+             console.log('* Client Disconnect', ip, socket.id);
+            console.log(`* NOW CAR: ${listOfCar()}`);
+            console.log('==========================')
             clearInterval(socket.interval);
             numberOfUser--;
         });
 
         // from Client Object
         socket.on('say', (messageData) => {
-            console.log(`From ${car} :`, messageData);
-            socket.emit('answer', `${car} : response Data!!`);
-
-            // const data = {
-            //     message: messageData,
-            // };
-            // await axios
-            // .post("http://49.143.16.46/api/test", data)
-            // .then(res => {
-            //     console.log(res);
-            // })
-            // .catch(error => {
-            //     console.log(error);
-            // })
+            console.log(`From ${whoAmI(socketID)} :`, messageData);
+            socket.emit('answer', `${whoAmI(socketID)}  :  OKOKOK!!`);
         });
 
         // to Client Object
@@ -86,6 +72,36 @@ module.exports = (server, app) => {
             console.log('(location data) send to Client!!');
         });
 
+        // change Car status
+        socket.on('status', (res) => {
+            console.log("요청받은 응답 : ", res);
+            let carNumber   = res.name;
+            let carStatus   = res.status;
 
+            for (car in cars) {
+                if (cars[car].name == carNumber) cars[car].status = carStatus;
+            }
+
+            socket.emit('statusChange', "운행중");
+        })
     });
+
+    function listOfCar() {
+        let result = "";
+        for (car of cars) {
+            result += car.name + " ";
+        }
+        return result;
+    };
+
+    function whoAmI(socketID) {
+        let selectedCar;
+        for (car of cars) {
+            if (car.id == socketID) {
+                selectedCar = car.name;
+                break;
+            }
+        }
+        return selectedCar;
+    };
 }
