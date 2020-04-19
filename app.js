@@ -29,6 +29,13 @@ app.use(flash());
 
 // 초기 페이지 설정
 app.use('/', indexRouter);
+app.use('/status', indexRouter);
+
+app.use((req, res, next) => {
+    const err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
 
 const server = app.listen(app.get('port'), () => {
     console.log('Listening at port number :', app.get('port'));

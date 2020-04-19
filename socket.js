@@ -72,7 +72,7 @@ module.exports = (server, app) => {
 
             // 테스트용 db 저장
             const info = new StatusInfo({
-                car_id: "1호차",
+                car_id: whoAmI(socketID),
                 car_battery: 80,
                 waypoint_start: "정문",
                 waypoint_end: "도서관",
