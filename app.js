@@ -1,4 +1,5 @@
 const express   = require('express');
+const cors      = require('cors');
 const path      = require('path');
 const flash     = require('connect-flash');
 require('dotenv').config()
@@ -11,11 +12,10 @@ const app = express();
 mongoConnect();
 
 // CORS 모든 도메인 권한 풀기.
-app.all('/*', function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "X-Requested-With");
-    next();
-});
+app.use(cors())
+app.get('/products/:id', function (req, res, next) {
+    res.json({ msg: 'This is CORS-enabled for all origins!' })
+})
 
 // pug로 웹페이지 통신.
 app.set('views', path.join(__dirname, 'views'));

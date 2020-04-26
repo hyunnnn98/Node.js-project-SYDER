@@ -117,6 +117,19 @@ module.exports = (server, app) => {
 
             socket.emit('statusChange', "운행중");
         })
+
+        // change Car Location test Module
+        socket.on('update', (res) => {
+            console.log("요청받은 응답 : ", res);
+
+            const locationData = {
+                carNumber : res.name,
+                carLat : res.lat,
+                carLng : res.lng
+            }
+
+            io.emit('updateLocation', locationData);
+        })
     });
 
     function listOfCar() {
