@@ -12,8 +12,13 @@ module.exports = (server, app) => {
     
     let cars            = [];
     let numberOfUser    = 0;   // count of User
-    
-    io.on('connection', (socket) => {
+
+    // 네임스페이스 구별
+    const device = io.of('/device');
+    const user   = io.of('/user');
+
+    // car 네임 스페이스
+    device.on('connection', (socket) => {
         numberOfUser++;
         const req       = socket.request;
         const ip        = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -38,10 +43,10 @@ module.exports = (server, app) => {
         // Client out of Car connect
         socket.on('carDisconnect', (connectedCar) => {
             // delete connectedCar of index
-            io.emit('answer', `${connectedCar} 차량 접속 해제!`);
+            device.emit('answer', `${connectedCar} 차량 접속 해제!`);
             for (car in cars) {
                 if (cars[car].id == socketID) {
-                    console.log("* 선택된 car 번호 : ", car)
+                    console.log("* 접속종료 car 번호 : ", car)
                     cars.splice(car, 1);
                 }
             };
@@ -50,7 +55,7 @@ module.exports = (server, app) => {
 
         // Client out of Server connect
          socket.on('disconnect', () => {
-             console.log('* Client Disconnect', ip, socket.id);
+            //  console.log('* Client Disconnect', ip, socket.id);
             console.log(`* NOW CAR: ${listOfCar()}`);
             console.log('==========================')
             clearInterval(socket.interval);
@@ -128,8 +133,16 @@ module.exports = (server, app) => {
                 carLng : res.lng
             }
 
-            io.emit('updateLocation', locationData);
+            device.emit('updateLocation', locationData);
         })
+    });
+
+    user.on('connection', (socket) => {
+        console.log('user 네임스페이스에 접속');
+
+        socket.on('disconnect', () => {
+            console.log('user 네임스페이스 접속 해제');
+        });
     });
 
     function listOfCar() {
