@@ -1,7 +1,7 @@
 const SocketIO = require('socket.io');
 const axios = require('axios');
 // mongo collection
-let StatusInfo = require('./schemas/car_status');
+// let StatusInfo = require('./schemas/car_status');
 
 module.exports = (server, app) => {
     const io = SocketIO(server);
@@ -16,6 +16,7 @@ module.exports = (server, app) => {
     // 네임스페이스 구별
     const device = io.of('/device');
     const user   = io.of('/user');
+    const admin  = io.of('/admin');
 
     // car 네임 스페이스
     device.on('connection', (socket) => {
@@ -76,35 +77,35 @@ module.exports = (server, app) => {
             };
 
             // 테스트용 db 저장
-            const info = new StatusInfo({
-                car_id: whoAmI(socketID),
-                car_battery: 80,
-                waypoint_start: "정문",
-                waypoint_end: "도서관",
-                distance: 1.3,
-                delivery_time: 5,
-                path: [
-                    { 
-                        lat: 35.123123,
-                        lng: 128.62312 
-                    },
-                    {
-                        lat: 35.123144,
-                        lng: 128.62312
-                    },
-                    {
-                        lat: 36.123155,
-                        lng: 128.62399
-                    }
-                ] 
-            });
-            info.save()
-                .then((res) => {
-                    console.log(res);
-                })
-                .catch((err) => {
-                    console.log("DB 저장 실패!!!!", err);
-                });
+            // const info = new StatusInfo({
+            //     car_id: whoAmI(socketID),
+            //     car_battery: 80,
+            //     waypoint_start: "정문",
+            //     waypoint_end: "도서관",
+            //     distance: 1.3,
+            //     delivery_time: 5,
+            //     path: [
+            //         { 
+            //             lat: 35.123123,
+            //             lng: 128.62312 
+            //         },
+            //         {
+            //             lat: 35.123144,
+            //             lng: 128.62312
+            //         },
+            //         {
+            //             lat: 36.123155,
+            //             lng: 128.62399
+            //         }
+            //     ] 
+            // });
+            // info.save()
+            //     .then((res) => {
+            //         console.log(res);
+            //     })
+            //     .catch((err) => {
+            //         console.log("DB 저장 실패!!!!", err);
+            //     });
 
             socket.emit("location", JSON.stringify(data));
             console.log('(location data) send to Client!!');
@@ -121,20 +122,21 @@ module.exports = (server, app) => {
             }
 
             socket.emit('statusChange', "운행중");
-        })
+        });
 
         // change Car Location test Module
         socket.on('update', (res) => {
             console.log("요청받은 응답 : ", res);
 
             const locationData = {
-                carNumber : res.name,
-                carLat : res.lat,
-                carLng : res.lng
-            }
+                carNumber: res.name,
+                carLat: res.lat,
+                carLng: res.lng
+            };
 
-            device.emit('updateLocation', locationData);
-        })
+            // 위치 변경된값 관리자한테 실시간 전송.
+            admin.emit('updateLocation', locationData);
+        });
     });
 
     user.on('connection', (socket) => {
@@ -142,6 +144,18 @@ module.exports = (server, app) => {
 
         socket.on('disconnect', () => {
             console.log('user 네임스페이스 접속 해제');
+        });
+    });
+
+    admin.on('connection', (socket) => {
+        console.log('admin 네임스페이스에 접속');
+
+        socket.on('test', (res) => {
+            console.log(res);
+        });
+
+        socket.on('disconnect', () => {
+            console.log('admin 네임스페이스 접속 해제');
         });
     });
 

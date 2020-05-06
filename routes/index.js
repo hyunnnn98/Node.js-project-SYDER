@@ -14,7 +14,6 @@ router.post('/status', (req, res) => {
             message: '노드 서버 연결 성공 => ' + req.body.message
         });
     } catch (err) {
-        console.log("서버 측 오류!", err);
         return res.status(500).json({
             code: 500,
             message: '서버 오류입니다.'
