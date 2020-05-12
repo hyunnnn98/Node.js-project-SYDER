@@ -1,6 +1,6 @@
-# Syder_2020-nodeTestServer
+# Nodejs-projcet-SYDER
 
-사용기술: Android, Node, AWS Lightsail, AWS EC2
+사용기술: AWS EC2, MongoDB, Node, Express, Socket IO, Android
 
 ### 2020.04.10
 ```
@@ -70,4 +70,20 @@
 ### 2020.05.01
 ```
 1. [노드 서버] 유저 / 차량 소켓 네임스페이스 분할.
+```
+
+### 2020.05.13
+```
+1. [노드 서버] 유저 / 차량 / 관리자 네임스페이스 분할.
+2. [노드 서버] 차량 네임스페이스 -> ROOM으로 세부 분할하여 관리.
+
+@ [UPDATE]
+Client out of server unconnect by the nomal root.
+Create a room and give each car an ID.
+Change location from test module.
+
+@ [CREATE]
+Request for car departure from user
+Request to open the car from the user.
+Client out of server unconnect by the nomal root.
 ```
