@@ -6,10 +6,10 @@ require('dotenv').config()
 
 const webSocket     = require('./socket');
 const indexRouter   = require('./routes');
-// const mongoConnect  = require('./schemas');
+const mongoConnect  = require('./schemas');
 
 const app = express();
-// mongoConnect();
+mongoConnect();
 
 // CORS *
 app.use(cors())

@@ -1,8 +1,8 @@
-const SocketIO = require('socket.io');
-const axios = require('axios');
+const SocketIO  = require('socket.io');
+const axios     = require('axios');
 
 // mongoDB collection
-// let StatusInfo = require('./schemas/car_status');
+const StatusInfo = require('./schemas/car_status');
 
 module.exports = (server, app) => {
     const io = SocketIO(server);
@@ -14,51 +14,19 @@ module.exports = (server, app) => {
     let users = 0;   
 
     // Namespace distinction
-    const device = io.of('/device');
-    const user = io.of('/user');
-    const admin = io.of('/admin');
+    const device  = io.of('/device');
+    const user    = io.of('/user');
+    const admin   = io.of('/admin');
 
     // Car namespace
     device.on('connection', (socket) => {
 
-        const req = socket.request;
-        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-        const socketID = socket.id;
-
-        // Client out of server unconnect by the network error.
-        socket.on('disconnect', () => {
-            //TODO [네트워크 연결종료 상황임으로] for문돌려서 해당 socket.id가 누구인지 찾아내야 함.
-
-            for (car in cars) {
-                if (cars[car].socketID == socketID) {
-                    console.log(`* [네트워크 연결종료] ${whoAmI(socketID)}호차 *`, ip, socket.id);
-                    cars.splice(car, 1);
-                }
-            };
-
-            console.log(`* NOW CAR: ${listOfCar()}`);
-            console.log('==========================')
-            clearInterval(socket.interval);
-        });
-
-        // Client out of server unconnect by the nomal root.
-        device.in('room' + data.roomId).on('car_disconnect', () => {
-            console.log('* [연결해제] Client Disconnect', ip, socket.id);
-
-            for (car in cars) {
-                if (cars[car].socketID == socketID) {
-                    console.log(`* [연결해제] ${whoAmI(socketID)}호차 *`, ip, socket.id);
-                    cars.splice(car, 1);
-                }
-            };
-
-            console.log(`* NOW CARS: ${listOfCar()}`);
-            console.log('==========================')
-            clearInterval(socket.interval);
-        });
+        const req       = socket.request;
+        const ip        = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const socketID  = socket.id;
 
         // [Join Room] Create a room and give each car an ID.
-        // When a client(= car) connects then
+        // When a client(= car) connects
         // => Connect with => socket.emit('JOIN:CAR', { carNumber: carNumber });.
         socket.on('JOIN:CAR', (data) => {
 
@@ -72,12 +40,46 @@ module.exports = (server, app) => {
             // Register the new car with a socket number.
             socket.join('CAR' + data.carNumber);
             console.log(`* 새로운 차량 접속! *`, ip, socket.id);
-            
+
             // Return array of created objects
             cars.push(data);
 
             console.log(`* NOW CAR: ${listOfCar()}`);
             console.log('==========================')
+        });
+
+        // Client out of server unconnect by the network error.
+        socket.on('disconnect', () => {
+            //TODO [네트워크 연결종료 상황임으로] for문돌려서 해당 socket.id가 누구인지 찾아내야 함.
+            let disconnectError = false;
+
+            for (car in cars) {
+                if (cars[car].socketID == socketID) {
+                    console.log(`* [네트워크 연결종료] ${whoAmI(socketID)}호차 *`, ip, socket.id);
+                    cars.splice(car, 1);
+                }
+            };
+
+            // console.log(`* NOW CARS: ${listOfCar()}`);
+            // console.log('==========================')
+            clearInterval(socket.interval);
+        });
+
+        // Client out of server unconnect by the nomal root.
+        socket.on('car_disconnect', () => {
+            console.log('* [연결해제] Client Disconnect', ip, socket.id);
+
+            for (car in cars) {
+                if (cars[car].socketID == socketID) {
+                    console.log(`* [연결해제] ${whoAmI(socketID)}호차 *`, ip, socket.id);
+                    console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~')
+                    cars.splice(car, 1);
+                }
+            };
+
+            console.log(`* NOW CARS: ${listOfCar()}`);
+            console.log('==========================')
+            socket.leave('CAR');
         });
 
         // Get notifications from all cars
@@ -119,29 +121,53 @@ module.exports = (server, app) => {
         })
 
         // Change location from test module
-        socket.on('car_update', (res) => {
+        socket.on('car_update', async (res) => {
 
             // [ EXAMPLE ]
             // res = {
-            //     status           : 0,
-            //     carNumber        : 1,
-            //     start_point      : '연서관',
-            //     end_point        : '도서관',
-            //     sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
-            //     receiver_token   : 'FDEFJLKWW@#322323LKWJKJAWWW',
+            //     status      : 301,
+            //     carNumber   : 1,
+            //     car_lat     : 35.896303,
+            //     car_lng     : 128.620828,
+            //     car_battery : 98,
             // }
             console.log("Requested response : ", res);
+            const status    = res.status;
+            const carNumber = res.carNumber;
+            const lat       = res.car_lat;
+            const lng       = res.car_lng;
+            const battery   = res.car_battery;
 
-            const locationData = {
-                carNumber: res.name,
-                carLat: res.lat,
-                carLng: res.lng
-            };
+            const searchCar = await StatusInfo.findOne({ carNumber });
+
+            // [IF] DB 데이터셋이 유지중일 때
+            if (searchCar) {
+                await StatusInfo.update({ carNumber }, { $set: { 
+                    'car_info.status'   : status, 
+                    'car_info.lat'      : lat, 
+                    'car_info.lng'      : lng, 
+                    'car_info.battery'  : battery 
+                }});
+            } else {
+                // [ELSE] DB 데이터셋이 없을 때 object 생성
+                const update_Info = new StatusInfo({
+                    carNumber,
+                    'car_info.status'   : status,
+                    'car_info.lat'      : lat,
+                    'car_info.lng'      : lng,
+                    'car_info.battery'  : battery,
+                });
+                update_Info.save()
+                .catch(err => {
+                    console.log('DB저장 실패!!', err)
+                });
+            }
+            const location_data = await StatusInfo.find();
 
             //TODO 여기서 위치정보 DB 최신화하기.
-            // 최신화 한 위치값 DB에서 불러온 후 관리자, 유저한테 실시간 전송.
-            admin.emit('car_updateLocation', locationData);
-            user.emit('car_updateLocation', locationData);
+            // 최신화 한 위치값 DB에서 불러온 후 관리자, 모든 유저한테 실시간 전송.
+            admin.emit('car_updateLocation', location_data);
+            user.emit('car_updateLocation', location_data);
         });
     });
 
@@ -149,11 +175,18 @@ module.exports = (server, app) => {
     user.on('connection', (socket) => {
         users++;
 
-        const req = socket.request;
-        const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-        const socketID = socket.id;
+        const req       = socket.request;
+        const ip        = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        const socketID  = socket.id;
 
         console.log(`USER 네임스페이스에 접속`);
+
+        // 공용 locationRequest
+        socket.on('locationRequest', async () => {
+            // 최신화 된 위치값 DB에서 불러온 후 관리자 페이지로 실시간 전송.
+            const location_data = await StatusInfo.find();
+            socket.emit('user_updateLocation', location_data);
+        });
 
         // Request for car departure from user
         socket.on('user_departureOrder', (locationInfo) => {
@@ -196,15 +229,20 @@ module.exports = (server, app) => {
     admin.on('connection', (socket) => {
         console.log('관리자 네임스페이스에 접속');
 
-        //TODO 통합 차량 위치 저장공간 만들기.DB가 필요하다.
-        socket.on('admin_locationRequest', () => {
-            socket.emit('admin_locationResponse', '여기에 각 차량별 위치값을 넣을 예정임.')
+        // 공용 locationRequest
+        admin.on('locationRequest', async () => {
+
+            // 최신화 된 위치값 DB에서 불러온 후 관리자 페이지로 실시간 전송.
+            const location_data = await StatusInfo.find();
+            socket.emit('admin_updateLocation', location_data);
         });
 
         socket.on('disconnect', () => {
             console.log('관리자가 퇴장했습니다.');
         });
     });
+
+
 
     function listOfCar() {
         let result = "";

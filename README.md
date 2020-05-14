@@ -83,7 +83,17 @@ Create a room and give each car an ID.
 Change location from test module.
 
 @ [CREATE]
-Request for car departure from user
+Request for car departure from user.
 Request to open the car from the user.
 Client out of server unconnect by the nomal root.
+```
+
+### 2020.05.14
+```
+@ [UPDATE]
+몽고DB 스키마 수정. (Object형태로 묶음)
+
+@ [CREATE]
+CAR -> [Req]Change location => 몽고DB 조회 후 DB값 존재 여부에 따라 INSERT, UPDATE 구분.
+Change location to User, Admin.
 ```
