@@ -97,3 +97,12 @@ Client out of server unconnect by the nomal root.
 CAR -> [Req]Change location => 몽고DB 조회 후 DB값 존재 여부에 따라 INSERT, UPDATE 구분.
 Change location to User, Admin.
 ```
+
+### 2020.05.17
+```
+@ [UPDATE]
+
+@ [CREATE]
+Firebase FCM 도입. firebae_token으로 유저에게 차량 관련 알림 전송.
+
+```

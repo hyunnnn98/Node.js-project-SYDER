@@ -1,6 +1,31 @@
 const SocketIO  = require('socket.io');
 const axios     = require('axios');
 
+// Firebase collection
+const firebase_admin = require("firebase-admin");
+const serviceAccount = require("./firebase-admin.json");
+firebase_admin.initializeApp({
+    credential: firebase_admin.credential.cert(serviceAccount),
+    databaseURL: "https://syder-a0944.firebaseio.com"
+});
+
+function fcm_message (title, body, token) {
+    let info = {
+        notification: {
+            title,
+            body,
+        },
+        data: {
+            fileno: '44',
+            style: '성공할까요?'
+        },
+        token
+    }
+
+    return info;
+}
+
+
 // mongoDB collection
 const StatusInfo = require('./schemas/car_status');
 
@@ -40,6 +65,32 @@ module.exports = (server, app) => {
             // Register the new car with a socket number.
             socket.join('CAR' + data.carNumber);
             console.log(`* 새로운 차량 접속! *`, ip, socket.id);
+
+            // [test] FCM message module
+            let token = 'crg_SiK-Xwg:APA91bEnLIqPZHwQvmHU2KOHtRwJKrJ3P761mZqDslKjToUYj9ebG6O03W8YDw9xmOsq0xDWrSMNIWXf8Mit6uleArIZhTIBawED5M73Y-CdtFFdc1xDnYWUVYVOj3YZcGqoDDhMvmzy'
+            // let token = 'fQBF5H-0Pm8:APA91bFHUz9dP8W6Lnf7pXKHfD3Nu6dt9Qdh3MeM6O9mBAPU0qppy87kPcfa1QOWiVTgcTUeZGciSqAKB1zEj05azmmfLm9Kzs-n01zq84MwSdvFLqKeAn2QkDXCEwwkSBxM8Wpw5o_e'
+            let title = "안녕!";
+            let body  = "테스트 모드 입니다!";
+            firebase_admin.messaging().send(fcm_message( title, body, token )) 
+                .then ((res) => {
+                    console.log('메시지 전송 성공!', res);
+                })
+                .catch ((err) => {
+                    console.log('메시지 전송 실패!', err);
+                })
+            // let payload = {
+            //     notification: {
+            //         title,
+            //         body,
+            //     }
+            // };
+            // firebase_admin.messaging().sendToDevice(token, payload)
+            //     .then ((res) => {
+            //         console.log('메시지 전송 성공!', res);
+            //     })
+            //     .catch ((err) => {
+            //         console.log('메시지 전송 실패!', err);
+            //     })
 
             // Return array of created objects
             cars.push(data);
@@ -91,9 +142,9 @@ module.exports = (server, app) => {
             //     carNumber        : 1,
             //     start_point      : '연서관',
             //     end_point        : '도서관',
-            //     sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
-            //     receiver_token   : 'FDEFJLKWW@#322323LKWJKJAWWW',
             // }
+
+            //TODO 여기서 차량 status보고 DB에서 토큰 값 가져올지 정해야 함.
 
             //TODO FMC 연동해서 유저한태 메세지 보내기.
             switch (res_info.status) {
@@ -162,7 +213,25 @@ module.exports = (server, app) => {
                     console.log('DB저장 실패!!', err)
                 });
             }
+            // TODO 데이터 정보 빼기
             const location_data = await StatusInfo.find();
+
+            /* [EXAMPLE]
+            location_data = {
+                carNumber: 1,
+                car_info: {
+                    status: 301,
+                    lat: 35.896303,
+                    lng: 128.620828,
+                    battery: 98
+                },
+                call: {
+                    start_point: "청문관",
+                    end_point: "본관",
+                    time: "10:12",
+                },
+            }
+             */
 
             //TODO 여기서 위치정보 DB 최신화하기.
             // 최신화 한 위치값 DB에서 불러온 후 관리자, 모든 유저한테 실시간 전송.
@@ -183,7 +252,7 @@ module.exports = (server, app) => {
 
         // 공용 locationRequest
         socket.on('locationRequest', async () => {
-            // 최신화 된 위치값 DB에서 불러온 후 관리자 페이지로 실시간 전송.
+            // 최신화 된 위치값 DB에서 불러온 후 안드로이드로 실시간 전송.
             const location_data = await StatusInfo.find();
             socket.emit('user_updateLocation', location_data);
         });
@@ -207,16 +276,16 @@ module.exports = (server, app) => {
         });
 
         // Request to open the car from the user
-        socket.on('user_openRequest', (locationInfo) => {
+        socket.on('user_openRequest', (token_info) => {
             console.log('유저로 부터 차량 개방 요청 받음!');
-            // locationInfo = {
+            // token_info = {
             //     status    : 301,
             //     carNumber : 1,
             //     sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
             //     receiver_token   : 'FDEFJLKWW@#322323LKWJKJAWWW',
             // }
             // car 네임스페이스로 차량 개방 요청 전송.
-            device.in('CAR' + locationInfo.carNumber).emit('car_openRequest', locationInfo);
+            device.in('CAR' + token_info.carNumber).emit('car_openRequest', token_info);
         });
 
         socket.on('disconnect', () => {
