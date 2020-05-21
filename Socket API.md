@@ -29,7 +29,52 @@ carNumber = {
 socket.emit("car_disconnect");
 ```
 
-#### ● 상태변화 알림
+#### ● 출발 요청 수신 => 받은 path값으로 차 출발
+```javascript
+socket.on("car_departureOrder", path_Info); 
+
+Ex) socket.on("car_departureOrder", path_Info);
+
+path_Info = {
+    status : 301,
+    path   : {
+        0 : {
+            path_lat: 35.896303,
+            path_lng: 128.620828,
+        },
+        1: {
+            path_lat: 35.896303,
+            path_lng: 128.620828,
+        },
+        2: {
+            path_lat: 35.896303,
+            path_lng: 128.620828,
+        },
+        3: {
+            path_lat: 35.896303,
+            path_lng: 128.620828,
+        },
+        4: {
+            path_lat: 35.896303,
+            path_lng: 128.620828,
+        },
+    },
+}
+```
+
+#### ● 개방 요청 수신
+```javascript
+socket.on("car_openRequest", car_info);
+
+Ex) socket.on("car_openRequest", car_info);
+
+car_info = {
+    status    : 301,
+    carNumber : 1,
+}
+```
+
+#### ● 상태변화 알림 ( status값에 따라 목적지 도착, 사고등 정보 전달 )
 ```javascript
 socket.emit("car_arrivalNotification", status_info); 
 
@@ -57,19 +102,6 @@ location_info = {
     car_battery : 98,
 }
 ```
-#### ● 개방 요청 받기
-```javascript
-socket.on("car_update", token_info);
-
-Ex) socket.on("car_update", token_info);
-
-token_info = {
-    status    : 301,
-    carNumber : 1,
-    sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
-    receiver_token   : 'FDEFJLKWW@#322323LKWJKJAWWW',
-}
-```
 
 #
 ## [안드로이드] User
@@ -84,6 +116,21 @@ socket.connect();
 #### ● 소켓서버 접속 해제
 ```javascript
 socket.disconnect();
+```
+
+#### ● 차량 출발 요청 발신
+```javascript
+socket.emit("user_departureOrder", locationInfo);
+
+Ex) socket.emit("user_departureOrder", locationInfo);
+
+locationInfo = {
+    carNumber        : 1,
+    path_id          : 3,
+    path_way         : reverse
+    sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
+    receiver_token   : 'FDEFJLKWW@#322323LKWJKJAWWW',
+}
 ```
 
 #### ● 차량 위치 조회
@@ -132,11 +179,10 @@ car_location = {
             time : "10:12",
         },
     },
-
 }
 ```
 
-#### ● 차량 위치변화 알림
+#### ● 차량 위치변화 알림받기
 ```javascript
 socket.on("car_updateLocation", car_location);
 
@@ -158,17 +204,15 @@ car_location = {
 }
 ```
 
-#### ● 차량 개방 요청
+#### ● 차량 개방 요청 발신
 ```javascript
-socket.emit("user_openRequest", token_info);
+socket.emit("user_openRequest", car_info);
 
-Ex) socket.emit("car_updateLocation", token_info);
+Ex) socket.emit("user_openRequest", car_info);
 
-token_info = {
+car_info = {
     status    : 301,
     carNumber : 1,
-    sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
-    receiver_token   : 'FDEFJLKWW@#322323LKWJKJAWWW',
 }
 ```
 

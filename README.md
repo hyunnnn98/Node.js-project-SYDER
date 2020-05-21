@@ -104,5 +104,16 @@ Change location to User, Admin.
 
 @ [CREATE]
 Firebase FCM 도입. firebae_token으로 유저에게 차량 관련 알림 전송.
+```
 
+### 2020.05.19
+```
+@ [UPDATE]
+Socket API document 작성.
+```
+
+### 2020.05.22
+```
+@ [UPDATE]
+Socket API document 업데이트.
 ```

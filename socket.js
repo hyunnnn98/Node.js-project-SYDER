@@ -101,7 +101,6 @@ module.exports = (server, app) => {
 
         // Client out of server unconnect by the network error.
         socket.on('disconnect', () => {
-            //TODO [네트워크 연결종료 상황임으로] for문돌려서 해당 socket.id가 누구인지 찾아내야 함.
             let disconnectError = false;
 
             for (car in cars) {
@@ -133,7 +132,7 @@ module.exports = (server, app) => {
             socket.leave('CAR');
         });
 
-        // Get notifications from all cars
+        // Get notifications from all cars ( 모든 차로부터 도착 알림 받기 )
         device.on('car_arrivalNotification', (res_info) => {
 
             // [ EXAMPLE ]
@@ -144,9 +143,7 @@ module.exports = (server, app) => {
             //     end_point        : '도서관',
             // }
 
-            //TODO 여기서 차량 status보고 DB에서 토큰 값 가져올지 정해야 함.
-
-            //TODO FMC 연동해서 유저한태 메세지 보내기.
+            //TODO 차량 status보고 DB에서 토큰 값 가져와서 FMC으로 유저한태 메세지 보내기.
             switch (res_info.status) {
                 case 301:
                     // 발신자에게 [차량 도착] 알림 전송
@@ -173,8 +170,7 @@ module.exports = (server, app) => {
 
         // Change location from test module
         socket.on('car_update', async (res) => {
-
-            // [ EXAMPLE ]
+            // [ EXAMPLE ] 
             // res = {
             //     status      : 301,
             //     carNumber   : 1,
@@ -182,6 +178,7 @@ module.exports = (server, app) => {
             //     car_lng     : 128.620828,
             //     car_battery : 98,
             // }
+
             console.log("Requested response : ", res);
             const status    = res.status;
             const carNumber = res.carNumber;
@@ -213,7 +210,8 @@ module.exports = (server, app) => {
                     console.log('DB저장 실패!!', err)
                 });
             }
-            // TODO 데이터 정보 빼기
+
+            // TODO 필요한 데이터 정보만 빼기
             const location_data = await StatusInfo.find();
 
             /* [EXAMPLE]
@@ -257,35 +255,66 @@ module.exports = (server, app) => {
             socket.emit('user_updateLocation', location_data);
         });
 
-        // Request for car departure from user
+        // Request for car departure from user ( 유저로 부터 출발 요청 받기 )
         socket.on('user_departureOrder', (locationInfo) => {
             console.log(`Connect to the USER namespace!, Now ${users} users online`);
             // 1. locationInfo 안에 있는 차량 정보 꺼내오기.
+            //TODO 출발요청 받은거 DB 최신화
 
             // locationInfo = {
-            //     status           : 301,
-            //     carNumber        : 1,
-            //     start_point      : '연서관',
-            //     end_point        : '도서관',
-            //     sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
-            //     receiver_token   : 'FDEFJLKWW@#322323LKWJKJAWWW',
+            //      status           : 301,
+            //      carNumber        : 1,
+            //      path_id          : 3,
+            //      path_way         : reverse
+            //      sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
+            //      receiver_token   : 'FDEFJLKWW@#322323LKWJKJAWWW',
             // }
 
+            //TODO locationInfo.status 보고 차한테 출발 명령 보낼지 말지 결정해야 함.
+            // [if] 만약 출발지에 이미 있을 경우 FCM으로 "차량이 '00장소' 에서 대기중입니다!" 라고 메시지 보내기.
+
+            // [ELSE] path 스키마에서 path값 긁어온다음 차한테 데이터 전송
+
+            // path_Info = {
+            //     status : 301,
+            //     path   : {
+            //         0 : {
+            //             path_lat: 35.896303,
+            //             path_lng: 128.620828,
+            //         },
+            //         1: {
+            //             path_lat: 35.896303,
+            //             path_lng: 128.620828,
+            //         },
+            //         2: {
+            //             path_lat: 35.896303,
+            //             path_lng: 128.620828,
+            //         },
+            //         3: {
+            //             path_lat: 35.896303,
+            //             path_lng: 128.620828,
+            //         },
+            //         4: {
+            //             path_lat: 35.896303,
+            //             path_lng: 128.620828,
+            //         },
+            //     }
+            // }
+
+            // [ELSE] 일때만 차한테 출발 명령 보내는걸로 설정해야 함!
             // CAR룸으로 지정된 carNumber에 출발 명령 전송.
-            device.in('CAR' + locationInfo.carNumber).emit('car_departureOrder', locationInfo);
+            device.in('CAR' + locationInfo.carNumber).emit('car_departureOrder', path_Info);
         });
 
         // Request to open the car from the user
-        socket.on('user_openRequest', (token_info) => {
+        socket.on('user_openRequest', (car_info) => {
             console.log('유저로 부터 차량 개방 요청 받음!');
-            // token_info = {
+            // car_info = {
             //     status    : 301,
             //     carNumber : 1,
-            //     sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
-            //     receiver_token   : 'FDEFJLKWW@#322323LKWJKJAWWW',
             // }
             // car 네임스페이스로 차량 개방 요청 전송.
-            device.in('CAR' + token_info.carNumber).emit('car_openRequest', token_info);
+            device.in('CAR' + car_info.carNumber).emit('car_openRequest', car_info);
         });
 
         socket.on('disconnect', () => {
