@@ -117,3 +117,13 @@ Socket API document 작성.
 @ [UPDATE]
 Socket API document 업데이트.
 ```
+
+### 2020.05.24
+```
+@ [CREATE]
+MongoDB car_path 스키마 생성
+
+@ [UPDATE]
+FCM 메시지 유동적인 처리
+car_status 상태코드 업데이트.
+```

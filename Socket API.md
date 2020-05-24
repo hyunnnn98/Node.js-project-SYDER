@@ -35,31 +35,29 @@ socket.on("car_departureOrder", path_Info);
 
 Ex) socket.on("car_departureOrder", path_Info);
 
-path_Info = {
-    status : 301,
-    path   : {
-        0 : {
-            path_lat: 35.896303,
-            path_lng: 128.620828,
-        },
-        1: {
-            path_lat: 35.896303,
-            path_lng: 128.620828,
-        },
-        2: {
-            path_lat: 35.896303,
-            path_lng: 128.620828,
-        },
-        3: {
-            path_lat: 35.896303,
-            path_lng: 128.620828,
-        },
-        4: {
-            path_lat: 35.896303,
-            path_lng: 128.620828,
-        },
-    },
-}
+path_Info = [
+                {
+                    lat: 35.896303,
+                    lng: 128.620828,
+                },
+                {
+                    lat: 35.896303,
+                    lng: 128.620828,
+                },
+                {
+                    lat: 35.896303,
+                    lng: 128.620828,
+                },
+                {
+                    lat: 35.896303,
+                    lng: 128.620828,
+                },
+                {
+                    lat: 35.896303,
+                    lng: 128.620828,
+                },
+            ];    
+
 ```
 
 #### ● 개방 요청 수신
@@ -83,8 +81,6 @@ Ex) socket.emit("car_arrivalNotification", status_info);
 status_info = {
     status           : 301,
     carNumber        : 1,
-    start_point      : '연서관',
-    end_point        : '도서관',
 }
 ```
 
@@ -125,9 +121,12 @@ socket.emit("user_departureOrder", locationInfo);
 Ex) socket.emit("user_departureOrder", locationInfo);
 
 locationInfo = {
+    status           : 210,
     carNumber        : 1,
     path_id          : 3,
-    path_way         : reverse
+    path_way         : reverse,
+    start_point      : "본관"
+    end_point        : "연서관"
     sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
     receiver_token   : 'FDEFJLKWW@#322323LKWJKJAWWW',
 }

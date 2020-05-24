@@ -21,13 +21,13 @@ function fcm_message (title, body, token) {
         },
         token
     }
-
     return info;
 }
 
 
 // mongoDB collection
 const StatusInfo = require('./schemas/car_status');
+const PathInfo   = require('./schemas/car_path');
 
 module.exports = (server, app) => {
     const io = SocketIO(server);
@@ -78,19 +78,6 @@ module.exports = (server, app) => {
                 .catch ((err) => {
                     console.log('메시지 전송 실패!', err);
                 })
-            // let payload = {
-            //     notification: {
-            //         title,
-            //         body,
-            //     }
-            // };
-            // firebase_admin.messaging().sendToDevice(token, payload)
-            //     .then ((res) => {
-            //         console.log('메시지 전송 성공!', res);
-            //     })
-            //     .catch ((err) => {
-            //         console.log('메시지 전송 실패!', err);
-            //     })
 
             // Return array of created objects
             cars.push(data);
@@ -133,42 +120,93 @@ module.exports = (server, app) => {
         });
 
         // Get notifications from all cars ( 모든 차로부터 도착 알림 받기 )
-        device.on('car_arrivalNotification', (res_info) => {
+        device.on('car_arrivalNotification', async (res_info) => {
 
             // [ EXAMPLE ]
             // res_info = {
             //     status           : 0,
             //     carNumber        : 1,
-            //     start_point      : '연서관',
-            //     end_point        : '도서관',
             // }
-
-            //TODO 차량 status보고 DB에서 토큰 값 가져와서 FMC으로 유저한태 메세지 보내기.
+            
+            /*
+               - The cart is stopping  | 100 : Assignment completed / 101 : Receiver consent / 102 : Receiver reject
+               - The cart is waiting   | 200 : Wating at starting point / 201 : Waiting at arrival point
+               - The cart is moving    | 300 : Moving to arrival point / 301 : Moving to starting point
+               - Order status          | 400 : Order end / 401 : Order cancel
+               - Etc                   | 900 : Waiting for cart assignment
+            */
+            const car_info      = await StatusInfo.findOne({ carNumber: res_info.carNumber });
+            const start_point   = car_info.call.start_point;
+            const end_point     = car_info.call.end_point;
+            let token           = '';
+            let temp_point      = '';
+            let temp_status     = '';
+            let title           = '';
+            let body            = '';
+            
+            // 차량 status보고 DB에서 토큰 값 가져와서 FMC으로 유저한태 메세지 보내기.
             switch (res_info.status) {
-                case 301:
-                    // 발신자에게 [차량 도착] 알림 전송
-                    // MSG = carNumber호차 res_info.starting_point에 도착했습니다!
+                case 311:
+                case 210:
+                    // (1) 발신자에게 [차량 출발] 출발지 알림 전송.
+                    // MSG = carNumber호차 res_info.starting_point로 출발했습니다!
+                    // res_info.receiver_token => MSG
+                    // (2) 발신자에게 [차량 도착] 출발지 알림 전송.
+                    // MSG = res_info.starting_point에 도착했습니다!
+                    // res_info.receiver_token => MSG
+                    temp_point  = start_point;
+                    token = car_info.token.sender;
+                    
+                    if (res_info.status == 311 ) {
+                        temp_status = '출발';
+                        title = `${res_info.carNumber}호차 ${temp_point}로 ${temp_status}했습니다!`;
+                    } else {
+                        temp_status = '도착';
+                        title = `${res_info.carNumber}호차 ${temp_point}로 ${temp_status}했습니다!`;
+                    }
+                    break;
+                case 310:
+                case 211:
+                    // (3) 수신자에게 [차량 출발] 도착지 알림 전송
+                    // MSG = carNumber호차 res_info.end_point로 출발했습니다!
                     // res_info.sender_token => MSG
-                    break;
-                case 200:
-                    // 수신자에게 [차량 출발] 알림 전송.
-                    // MSG = carNumber호차 res_info.starting_point에 도착했습니다!
-                    // res_info.receiver_token => MSG
-                    break;
-                case 201:
-                    // 수신자에게 [차량 도착] 알림 전송.
-                    // MSG =  res_info.end_point 도착했습니다!
-                    // res_info.receiver_token => MSG
+                    // (4) 수신자에게 [차량 도착] 도착지 알림 전송
+                    // MSG = carNumber호차 res_info.end_point에 도착했습니다!
+                    // res_info.sender_token => MSG
+                    temp_point = end_point;
+                    token = car_info.token.receiver;
+
+                    if (res_info.status == 310) {
+                        temp_status = '출발';
+                        title = `${res_info.carNumber}호차 ${temp_point}로 ${temp_status}했습니다!`;
+                    } else {
+                        temp_status = '도착';
+                        title = `${res_info.carNumber}호차 ${temp_point}로 ${temp_status}했습니다!`;
+                    }                    
                     break;
                 case 400:
-                    // 수신자, 발신자에게 [운행 완료] 알림 전송.
+                    // (마지막) 발신자, 수신자에게 [운행 완료] 알림 전송.
                     // res_info.sender_token    => 운행이 종료되었습니다!
                     // res_info.receiver_token  => 운행이 종료되었습니다!
+                    title = `운행이 종료되었습니다!`;
+                    token = [car_info.token.sender, car_info.token.receiver]
+                    break;
+                case 910:
+                    // TODO 관리자한테 소켓으로 메시지 전송.
                     break;
             }
+
+            firebase_admin.messaging().send(fcm_message(title, body, token))
+                .then((res) => {
+                    console.log('메시지 전송 성공!', res);
+                })
+                .catch((err) => {
+                    console.log('메시지 전송 실패!', err);
+                })
+
         })
 
-        // Change location from test module
+        // Change location from test module (= 테스트 모듈로 부터 차량 위치변경 정보 전송.)
         socket.on('car_update', async (res) => {
             // [ EXAMPLE ] 
             // res = {
@@ -188,7 +226,7 @@ module.exports = (server, app) => {
 
             const searchCar = await StatusInfo.findOne({ carNumber });
 
-            // [IF] DB 데이터셋이 유지중일 때
+            // [IF] DB 데이터셋이 유지중일 때 => 테이터 업데이트
             if (searchCar) {
                 await StatusInfo.update({ carNumber }, { $set: { 
                     'car_info.status'   : status, 
@@ -197,7 +235,7 @@ module.exports = (server, app) => {
                     'car_info.battery'  : battery 
                 }});
             } else {
-                // [ELSE] DB 데이터셋이 없을 때 object 생성
+                // [ELSE] DB 데이터셋이 없을 때 object 생성 후 데이터 저장
                 const update_Info = new StatusInfo({
                     carNumber,
                     'car_info.status'   : status,
@@ -231,7 +269,6 @@ module.exports = (server, app) => {
             }
              */
 
-            //TODO 여기서 위치정보 DB 최신화하기.
             // 최신화 한 위치값 DB에서 불러온 후 관리자, 모든 유저한테 실시간 전송.
             admin.emit('car_updateLocation', location_data);
             user.emit('car_updateLocation', location_data);
@@ -256,54 +293,79 @@ module.exports = (server, app) => {
         });
 
         // Request for car departure from user ( 유저로 부터 출발 요청 받기 )
-        socket.on('user_departureOrder', (locationInfo) => {
+        socket.on('user_departureOrder', async (locationInfo) => {
             console.log(`Connect to the USER namespace!, Now ${users} users online`);
             // 1. locationInfo 안에 있는 차량 정보 꺼내오기.
-            //TODO 출발요청 받은거 DB 최신화
-
             // locationInfo = {
-            //      status           : 301,
+            //      status           : 210,
             //      carNumber        : 1,
             //      path_id          : 3,
-            //      path_way         : reverse
+            //      path_way         : reverse,
+            //      start_point      : "본관"
+            //      end_point        : "연서관"
             //      sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
             //      receiver_token   : 'FDEFJLKWW@#322323LKWJKJAWWW',
             // }
 
-            //TODO locationInfo.status 보고 차한테 출발 명령 보낼지 말지 결정해야 함.
+            // 출발요청 받은거 DB 최신화
+            await StatusInfo.update({ carNumber }, {
+                $set: {
+                    'car_info.status'   : locationInfo.status,
+                    'path.path_id'      : locationInfo.path_id,
+                    'path.path_way'     : locationInfo.path_way,
+                    'call.start_point'  : locationInfo.start_point,
+                    'call.end_point'    : locationInfo.end_point,
+                    'token.sender'      : locationInfo.sender_token,
+                    'token.receiver'    : locationInfo.receiver_token,
+                }
+            });
+            
+            // locationInfo.status 보고 차한테 출발 명령 보낼지 말지 결정해야 함.
             // [if] 만약 출발지에 이미 있을 경우 FCM으로 "차량이 '00장소' 에서 대기중입니다!" 라고 메시지 보내기.
-
-            // [ELSE] path 스키마에서 path값 긁어온다음 차한테 데이터 전송
-
-            // path_Info = {
-            //     status : 301,
-            //     path   : {
-            //         0 : {
-            //             path_lat: 35.896303,
-            //             path_lng: 128.620828,
-            //         },
-            //         1: {
-            //             path_lat: 35.896303,
-            //             path_lng: 128.620828,
-            //         },
-            //         2: {
-            //             path_lat: 35.896303,
-            //             path_lng: 128.620828,
-            //         },
-            //         3: {
-            //             path_lat: 35.896303,
-            //             path_lng: 128.620828,
-            //         },
-            //         4: {
-            //             path_lat: 35.896303,
-            //             path_lng: 128.620828,
-            //         },
-            //     }
-            // }
-
-            // [ELSE] 일때만 차한테 출발 명령 보내는걸로 설정해야 함!
-            // CAR룸으로 지정된 carNumber에 출발 명령 전송.
-            device.in('CAR' + locationInfo.carNumber).emit('car_departureOrder', path_Info);
+            if ( locationInfo.status == 210 ) {
+                let title = `차량이 ${locationInfo.start_point}장소에서 대기중입니다!`;
+                let body  = '물건을 실어주세요!'
+                
+                firebase_admin.messaging().send(fcm_message(title, body, locationInfo.sender_token))
+                .then((res) => {
+                    console.log('메시지 전송 성공!', res);
+                })
+                .catch((err) => {
+                    console.log('메시지 전송 실패!', err);
+                })
+            } else {
+                // [ELSE] path 스키마에서 path값 긁어온다음 차한테 데이터 전송
+                const path_info = await PathInfo.findOne({ path_id: locationInfo.path_id });
+                // path_way 보고 역방향 / 정방향에 따라 path 순서 바꿔서 보내주기!
+                
+                if (locationInfo.path_way == 'reverse') path_info = path_info.reverse();
+                /*
+                    path_Info = [
+                                    {
+                                        lat: 35.896303,
+                                        lng: 128.620828,
+                                    },
+                                    {
+                                        lat: 35.896303,
+                                        lng: 128.620828,
+                                    },
+                                    {
+                                        lat: 35.896303,
+                                        lng: 128.620828,
+                                    },
+                                    {
+                                        lat: 35.896303,
+                                        lng: 128.620828,
+                                    },
+                                    {
+                                        lat: 35.896303,
+                                        lng: 128.620828,
+                                    },
+                                ];
+                */ 
+                // CAR룸으로 지정된 carNumber에 출발 명령 전송.
+                device.in('CAR' + locationInfo.carNumber).emit('car_departureOrder', path_Info);
+            }
         });
 
         // Request to open the car from the user

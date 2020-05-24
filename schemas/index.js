@@ -31,4 +31,5 @@ module.exports = () => {
     });
 
     require('./car_status');
+    require('./car_path');
 };

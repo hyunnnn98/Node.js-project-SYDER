@@ -45,7 +45,12 @@ const statusSchema = new Schema({
         },
     },
     path: {
-        type: Array
+        path_id: {
+            type: Number,
+        },
+        path_way: {
+            type: Number,
+        }
     },
     createdAt: {
         type: Date,
