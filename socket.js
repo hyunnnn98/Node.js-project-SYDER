@@ -285,6 +285,9 @@ module.exports = (server, app) => {
 
         console.log(`USER 네임스페이스에 접속`);
 
+        // TODO locationre 이름 확인하기
+        // TODO reverse 값 불린으로 바꾸기
+
         // 공용 locationRequest
         socket.on('locationRequest', async () => {
             // 최신화 된 위치값 DB에서 불러온 후 안드로이드로 실시간 전송.

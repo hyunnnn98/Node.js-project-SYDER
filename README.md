@@ -127,3 +127,9 @@ MongoDB car_path 스키마 생성
 FCM 메시지 유동적인 처리
 car_status 상태코드 업데이트.
 ```
+
+### 2020.05.26
+```
+@ [CREATE]
+Connect to AWS MongoDB
+```

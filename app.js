@@ -41,8 +41,8 @@ app.use((req, res, next) => {
 // TEST
 // const PathInfo = require('./schemas/car_path');
 // const update_Info = new PathInfo({
-//     'path_id' : 2,
-//     'start_point': 1,
+//     'path_id' : 1,
+//     'start_point': 2,
 //     'end_point': 3,
 //     'travel_time': 13,
 //     'travel_distance': 12,

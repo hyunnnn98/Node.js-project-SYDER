@@ -124,7 +124,7 @@ locationInfo = {
     status           : 210,
     carNumber        : 1,
     path_id          : 3,
-    path_way         : reverse,
+    path_way         : 0,
     start_point      : "본관"
     end_point        : "연서관"
     sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
@@ -138,7 +138,7 @@ socket.emit("locationRequest");
 
 Ex) socket.emit("locationRequest", cars_info);
 
-car_location = {
+cars_info = {
     1 : {
         car_info : {
             status  : 301,
