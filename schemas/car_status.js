@@ -3,11 +3,11 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const { Types: { ObjectId } } = Schema;
 const statusSchema = new Schema({
-    carNumber: {
-        type: Number,
-        unique: true,
-    },
     car_info: {
+        carNumber: {
+            type: Number,
+            unique: true,
+        },
         status: {
             type: Number,
             required: true,

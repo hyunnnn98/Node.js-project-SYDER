@@ -237,11 +237,11 @@ module.exports = (server, app) => {
             } else {
                 // [ELSE] DB 데이터셋이 없을 때 object 생성 후 데이터 저장
                 const update_Info = new StatusInfo({
-                    carNumber,
-                    'car_info.status'   : status,
-                    'car_info.lat'      : lat,
-                    'car_info.lng'      : lng,
-                    'car_info.battery'  : battery,
+                    'car_info.carNumber' : carNumber,
+                    'car_info.status'    : status,
+                    'car_info.lat'       : lat,
+                    'car_info.lng'       : lng,
+                    'car_info.battery'   : battery,
                 });
                 update_Info.save()
                 .catch(err => {
