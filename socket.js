@@ -225,23 +225,24 @@ module.exports = (server, app) => {
             const battery   = res.car_battery;
 
             const searchCar = await StatusInfo.findOne({ carNumber });
+            console.log('searchCar: ', searchCar)
 
             // [IF] DB 데이터셋이 유지중일 때 => 테이터 업데이트
             if (searchCar) {
                 await StatusInfo.update({ carNumber }, { $set: { 
-                    'car_info.status'   : status, 
-                    'car_info.lat'      : lat, 
-                    'car_info.lng'      : lng, 
-                    'car_info.battery'  : battery 
+                    status, 
+                    lat, 
+                    lng, 
+                    battery 
                 }});
             } else {
                 // [ELSE] DB 데이터셋이 없을 때 object 생성 후 데이터 저장
                 const update_Info = new StatusInfo({
-                    'car_info.carNumber' : carNumber,
-                    'car_info.status'    : status,
-                    'car_info.lat'       : lat,
-                    'car_info.lng'       : lng,
-                    'car_info.battery'   : battery,
+                    carNumber,
+                    status,
+                    lat,
+                    lng,
+                    battery,
                 });
                 update_Info.save()
                 .catch(err => {
@@ -313,7 +314,7 @@ module.exports = (server, app) => {
             // 출발요청 받은거 DB 최신화
             await StatusInfo.update({ carNumber }, {
                 $set: {
-                    'car_info.status'   : locationInfo.status,
+                    'status'            : locationInfo.status,
                     'path.path_id'      : locationInfo.path_id,
                     'path.path_way'     : locationInfo.path_way,
                     'call.start_point'  : locationInfo.start_point,

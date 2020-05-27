@@ -3,30 +3,28 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const { Types: { ObjectId } } = Schema;
 const statusSchema = new Schema({
-    car_info: {
-        carNumber: {
-            type: Number,
-            unique: true,
-        },
-        status: {
-            type: Number,
-            required: true,
-        },
-        lat: {
-            type: Number,
-            required: true,
-        },
-        lng: {
-            type: Number,
-            required: true,
-        },
-        battery: {
-            type: Number,
-            max: 100,
-            required: true,
-        },
-        distance: Number,
+    carNumber: {
+        type: Number,
+        unique: true,
     },
+    status: {
+        type: Number,
+        required: true,
+    },
+    lat: {
+        type: Number,
+        required: true,
+    },
+    lng: {
+        type: Number,
+        required: true,
+    },
+    battery: {
+        type: Number,
+        max: 100,
+        required: true,
+    },
+    distance: Number,
     call: {
         start_point: {
             type: String,
