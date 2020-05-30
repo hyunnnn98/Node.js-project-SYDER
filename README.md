@@ -133,3 +133,10 @@ car_status 상태코드 업데이트.
 @ [CREATE]
 Connect to AWS MongoDB
 ```
+
+### 2020.05.30
+```
+@ [HPDATE]
+FCM 메시지에 Android Activity 포함해서 보내기.
+Socket.API 업데이트.
+```

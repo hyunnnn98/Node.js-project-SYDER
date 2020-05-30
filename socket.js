@@ -6,7 +6,7 @@ const firebase_admin = require("firebase-admin");
 const serviceAccount = require("./firebase-admin.json");
 firebase_admin.initializeApp({
     credential: firebase_admin.credential.cert(serviceAccount),
-    databaseURL: "https://syder-a0944.firebaseio.com"
+    databaseURL: "https://syder-f6710.firebaseio.com"
 });
 
 function fcm_message (title, body, token) {
@@ -14,10 +14,9 @@ function fcm_message (title, body, token) {
         notification: {
             title,
             body,
+            clickAction: 'CarLocationActivity'
         },
         data: {
-            fileno: '44',
-            style: '성공할까요?'
         },
         token
     }
@@ -66,19 +65,6 @@ module.exports = (server, app) => {
             socket.join('CAR' + data.carNumber);
             console.log(`* 새로운 차량 접속! *`, ip, socket.id);
 
-            // [test] FCM message module
-            let token = 'crg_SiK-Xwg:APA91bEnLIqPZHwQvmHU2KOHtRwJKrJ3P761mZqDslKjToUYj9ebG6O03W8YDw9xmOsq0xDWrSMNIWXf8Mit6uleArIZhTIBawED5M73Y-CdtFFdc1xDnYWUVYVOj3YZcGqoDDhMvmzy'
-            // let token = 'fQBF5H-0Pm8:APA91bFHUz9dP8W6Lnf7pXKHfD3Nu6dt9Qdh3MeM6O9mBAPU0qppy87kPcfa1QOWiVTgcTUeZGciSqAKB1zEj05azmmfLm9Kzs-n01zq84MwSdvFLqKeAn2QkDXCEwwkSBxM8Wpw5o_e'
-            let title = "안녕!";
-            let body  = "테스트 모드 입니다!";
-            firebase_admin.messaging().send(fcm_message( title, body, token )) 
-                .then ((res) => {
-                    console.log('메시지 전송 성공!', res);
-                })
-                .catch ((err) => {
-                    console.log('메시지 전송 실패!', err);
-                })
-
             // Return array of created objects
             cars.push(data);
 
@@ -121,6 +107,7 @@ module.exports = (server, app) => {
 
         // Get notifications from all cars ( 모든 차로부터 도착 알림 받기 )
         device.on('car_arrivalNotification', async (res_info) => {
+            console.log('차량으로 부터 알림을 받았습니다!')
 
             // [ EXAMPLE ]
             // res_info = {
@@ -141,13 +128,13 @@ module.exports = (server, app) => {
             let token           = '';
             let temp_point      = '';
             let temp_status     = '';
-            let title           = '';
+            let title           = 'SYDER';
             let body            = '';
             
             // 차량 status보고 DB에서 토큰 값 가져와서 FMC으로 유저한태 메세지 보내기.
             switch (res_info.status) {
-                case 311:
-                case 210:
+                case 301:
+                case 200:
                     // (1) 발신자에게 [차량 출발] 출발지 알림 전송.
                     // MSG = carNumber호차 res_info.starting_point로 출발했습니다!
                     // res_info.receiver_token => MSG
@@ -157,16 +144,16 @@ module.exports = (server, app) => {
                     temp_point  = start_point;
                     token = car_info.token.sender;
                     
-                    if (res_info.status == 311 ) {
+                    if (res_info.status == 301 ) {
                         temp_status = '출발';
-                        title = `${res_info.carNumber}호차 ${temp_point}로 ${temp_status}했습니다!`;
+                        body = `${res_info.carNumber}호차 ${temp_point}로 ${temp_status}했습니다!`;
                     } else {
                         temp_status = '도착';
-                        title = `${res_info.carNumber}호차 ${temp_point}로 ${temp_status}했습니다!`;
+                        body = `${res_info.carNumber}호차 ${temp_point}로 ${temp_status}했습니다!`;
                     }
                     break;
-                case 310:
-                case 211:
+                case 300:
+                case 201:
                     // (3) 수신자에게 [차량 출발] 도착지 알림 전송
                     // MSG = carNumber호차 res_info.end_point로 출발했습니다!
                     // res_info.sender_token => MSG
@@ -176,23 +163,23 @@ module.exports = (server, app) => {
                     temp_point = end_point;
                     token = car_info.token.receiver;
 
-                    if (res_info.status == 310) {
+                    if (res_info.status == 300) {
                         temp_status = '출발';
-                        title = `${res_info.carNumber}호차 ${temp_point}로 ${temp_status}했습니다!`;
+                        body = `${res_info.carNumber}호차 ${temp_point}로 ${temp_status}했습니다!`;
                     } else {
                         temp_status = '도착';
-                        title = `${res_info.carNumber}호차 ${temp_point}로 ${temp_status}했습니다!`;
+                        body = `${res_info.carNumber}호차 ${temp_point}로 ${temp_status}했습니다!`;
                     }                    
                     break;
                 case 400:
                     // (마지막) 발신자, 수신자에게 [운행 완료] 알림 전송.
                     // res_info.sender_token    => 운행이 종료되었습니다!
                     // res_info.receiver_token  => 운행이 종료되었습니다!
-                    title = `운행이 종료되었습니다!`;
+                    body = `운행이 종료되었습니다!`;
                     token = [car_info.token.sender, car_info.token.receiver]
                     break;
-                case 910:
-                    // TODO 관리자한테 소켓으로 메시지 전송.
+                case 900:
+                    // TODO 관리자한테 소켓 메시지, 라라벨로 DB업데이트 요청 전송.
                     break;
             }
 
@@ -204,10 +191,12 @@ module.exports = (server, app) => {
                     console.log('메시지 전송 실패!', err);
                 })
 
+            //TODO 운행 완료시 라라벨로 운행 완료 HTTP 통신 메시지 보내야 함.
         })
 
         // Change location from test module (= 테스트 모듈로 부터 차량 위치변경 정보 전송.)
         socket.on('car_update', async (res) => {
+            console.log('차량으로 부터 위치 변경 알림을 받았습니다!')
             // [ EXAMPLE ] 
             // res = {
             //     status      : 301,
@@ -217,7 +206,6 @@ module.exports = (server, app) => {
             //     car_battery : 98,
             // }
 
-            console.log("Requested response : ", res);
             const status    = res.status;
             const carNumber = res.carNumber;
             const lat       = res.car_lat;
@@ -255,13 +243,11 @@ module.exports = (server, app) => {
 
             /* [EXAMPLE]
             location_data = {
-                carNumber: 1,
-                car_info: {
-                    status: 301,
-                    lat: 35.896303,
-                    lng: 128.620828,
-                    battery: 98
-                },
+                carNumber   : 1,
+                status      : 301,
+                lat         : 35.896303,
+                lng         : 128.620828,
+                battery     : 98,
                 call: {
                     start_point: "청문관",
                     end_point: "본관",
@@ -301,7 +287,7 @@ module.exports = (server, app) => {
             console.log(`Connect to the USER namespace!, Now ${users} users online`);
             // 1. locationInfo 안에 있는 차량 정보 꺼내오기.
             // locationInfo = {
-            //      status           : 210,
+            //      status           : 200,
             //      carNumber        : 1,
             //      path_id          : 3,
             //      path_way         : reverse,
@@ -310,6 +296,8 @@ module.exports = (server, app) => {
             //      sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
             //      receiver_token   : 'FDEFJLKWW@#322323LKWJKJAWWW',
             // }
+
+            const carNumber = locationInfo.carNumber;
 
             // 출발요청 받은거 DB 최신화
             await StatusInfo.update({ carNumber }, {
@@ -323,10 +311,11 @@ module.exports = (server, app) => {
                     'token.receiver'    : locationInfo.receiver_token,
                 }
             });
+            console.log('출발요청 받은 데이터, DB 최신화 완료!')
             
             // locationInfo.status 보고 차한테 출발 명령 보낼지 말지 결정해야 함.
             // [if] 만약 출발지에 이미 있을 경우 FCM으로 "차량이 '00장소' 에서 대기중입니다!" 라고 메시지 보내기.
-            if ( locationInfo.status == 210 ) {
+            if ( locationInfo.status == 200 ) {
                 let title = `차량이 ${locationInfo.start_point}장소에서 대기중입니다!`;
                 let body  = '물건을 실어주세요!'
                 
@@ -369,18 +358,17 @@ module.exports = (server, app) => {
                 */ 
                 // CAR룸으로 지정된 carNumber에 출발 명령 전송.
                 device.in('CAR' + locationInfo.carNumber).emit('car_departureOrder', path_Info);
+                console.log(`유저로 부터 받은 출발명령 => ${carNumber}호차로 전송 완료!`)
             }
         });
 
         // Request to open the car from the user
-        socket.on('user_openRequest', (car_info) => {
+        socket.on('user_openRequest', (carNumber) => {
             console.log('유저로 부터 차량 개방 요청 받음!');
-            // car_info = {
-            //     status    : 301,
-            //     carNumber : 1,
-            // }
+            // carNumber : 1,
+
             // car 네임스페이스로 차량 개방 요청 전송.
-            device.in('CAR' + car_info.carNumber).emit('car_openRequest', car_info);
+            device.in('CAR' + carNumber).emit('car_openRequest', carNumber);
         });
 
         socket.on('disconnect', () => {

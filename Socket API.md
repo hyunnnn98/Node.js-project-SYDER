@@ -118,10 +118,25 @@ socket.disconnect();
 ```javascript
 socket.emit("user_departureOrder", locationInfo);
 
-Ex) socket.emit("user_departureOrder", locationInfo);
+Ex) 차량이 출발지에 가야할 경우 
+socket.emit("user_departureOrder", locationInfo);
 
 locationInfo = {
-    status           : 210,
+    status           : 200,
+    carNumber        : 1,
+    path_id          : 3,
+    path_way         : 0,
+    start_point      : "본관"
+    end_point        : "연서관"
+    sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
+    receiver_token   : 'FDEFJLKWW@#322323LKWJKJAWWW',
+}
+
+Ex) 차량이 출발지에 있을 경우 
+socket.emit("user_departureOrder", locationInfo);
+
+locationInfo = {
+    status           : 201,
     carNumber        : 1,
     path_id          : 3,
     path_way         : 0,
@@ -189,30 +204,25 @@ Ex) socket.on("car_updateLocation", car_location);
 
 car_location = {
     carNumber   : 1,
-    car_info : {
-        status  : 301,
-        lat     : 35.896303,
-        lng     : 128.620828,
-        battery : 98
-    },
-    call : {
-        start_point : "청문관",
-        end_point : "본관",
-        time : "10:12",
+    status      : 301,
+    lat         : 35.896303,
+    lng         : 128.620828,
+    battery     : 98,
+    call: {
+        start_point: "청문관",
+        end_point: "본관",
+        time: "10:12",
     },
 }
 ```
 
 #### ● 차량 개방 요청 발신
 ```javascript
-socket.emit("user_openRequest", car_info);
+socket.emit("user_openRequest", carNumber);
 
-Ex) socket.emit("user_openRequest", car_info);
+Ex) socket.emit("user_openRequest", carNumber);
 
-car_info = {
-    status    : 301,
-    carNumber : 1,
-}
+carNumber : 1;
 ```
 
 #
@@ -237,16 +247,14 @@ Ex) socket.on("car_updateLocation", car_location);
 
 car_location = {
     carNumber   : 1,
-    car_info : {
-        status  : 301,
-        lat     : 35.896303,
-        lng     : 128.620828,
-        battery : 98
-    },
-    call : {
-        start_point : "청문관",
-        end_point : "본관",
-        time : "10:12",
+    status      : 301,
+    lat         : 35.896303,
+    lng         : 128.620828,
+    battery     : 98,
+    call: {
+        start_point: "청문관",
+        end_point: "본관",
+        time: "10:12",
     },
 }
 ```
