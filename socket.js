@@ -62,7 +62,7 @@ module.exports = (server, app) => {
             data.socketID = socketID;
 
             // Register the new car with a socket number.
-            socket.join('CAR' + data.carNumber);
+            // socket.join('CAR' + data.carNumber);
             console.log(`* 새로운 차량 접속! *`, ip, socket.id);
 
             // Return array of created objects
@@ -357,7 +357,7 @@ module.exports = (server, app) => {
                                 ];
                 */ 
                 // CAR룸으로 지정된 carNumber에 출발 명령 전송.
-                device.in('CAR' + locationInfo.carNumber).emit('car_departureOrder', path_data);
+                device.to(findCar(carNumber)).emit('car_departureOrder', path_data);
                 console.log(`유저로 부터 받은 출발명령 => ${carNumber}호차로 전송 완료!`)
             }
         });
@@ -368,7 +368,7 @@ module.exports = (server, app) => {
             // carNumber : 1,
 
             // car 네임스페이스로 차량 개방 요청 전송.
-            device.in('CAR' + carNumber).emit('car_openRequest', carNumber);
+            device.to(findCar(carNumber)).emit('car_openRequest', carNumber);
         });
 
         socket.on('disconnect', () => {
@@ -405,10 +405,19 @@ module.exports = (server, app) => {
     };
 
     function whoAmI(socketID) {
-        let carNumber;
         for (car of cars) {
             if (car.socketID == socketID) {
                 selectedCar = car.carNumber;
+                break;
+            }
+        }
+        return selectedCar;
+    };
+
+    function findCar(carNumber) {
+        for (car of cars) {
+            if (car.carNumber == carNumber) {
+                selectedCar = car.socketID;
                 break;
             }
         }
