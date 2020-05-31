@@ -303,7 +303,7 @@ module.exports = (server, app) => {
             await StatusInfo.update({ carNumber }, {
                 $set: {
                     'status'            : locationInfo.status,
-                    'path.path_id'      : locationInfo.path_id,
+                    'path_id'           : locationInfo.path_id,
                     'call.start_point'  : locationInfo.start_point,
                     'call.end_point'    : locationInfo.end_point,
                     'token.sender'      : locationInfo.sender_token,
