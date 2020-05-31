@@ -62,14 +62,11 @@ path_Info = [
 
 #### ● 개방 요청 수신
 ```javascript
-socket.on("car_openRequest", car_info);
+socket.on("car_openRequest", carNumber);
 
-Ex) socket.on("car_openRequest", car_info);
+Ex) socket.on("car_openRequest", carNumber);
 
-car_info = {
-    status    : 301,
-    carNumber : 1,
-}
+carNumber : 1;
 ```
 
 #### ● 상태변화 알림 ( status값에 따라 목적지 도착, 사고등 정보 전달 )

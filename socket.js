@@ -304,7 +304,6 @@ module.exports = (server, app) => {
                 $set: {
                     'status'            : locationInfo.status,
                     'path.path_id'      : locationInfo.path_id,
-                    'path.path_way'     : locationInfo.path_way,
                     'call.start_point'  : locationInfo.start_point,
                     'call.end_point'    : locationInfo.end_point,
                     'token.sender'      : locationInfo.sender_token,
