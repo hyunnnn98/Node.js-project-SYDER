@@ -314,6 +314,7 @@ module.exports = (server, app) => {
             
             // locationInfo.status 보고 차한테 출발 명령 보낼지 말지 결정해야 함.
             // [if] 만약 출발지에 이미 있을 경우 FCM으로 "차량이 '00장소' 에서 대기중입니다!" 라고 메시지 보내기.
+            let path_data = await PathInfo.findOne({ path_id: locationInfo.path_id });
             if ( locationInfo.status == 200 ) {
                 let title = `차량이 ${locationInfo.start_point}장소에서 대기중입니다!`;
                 let body  = '물건을 실어주세요!'
@@ -327,10 +328,10 @@ module.exports = (server, app) => {
                 })
             } else {
                 // [ELSE] path 스키마에서 path값 긁어온다음 차한테 데이터 전송
-                const path_info = await PathInfo.findOne({ path_id: locationInfo.path_id });
+
                 // path_way 보고 역방향 / 정방향에 따라 path 순서 바꿔서 보내주기!
                 
-                if (locationInfo.path_way == 'reverse') path_info = path_info.reverse();
+                if (locationInfo.path_way == 'reverse') path_data = path_info.reverse();
                 /*
                     path_Info = [
                                     {
@@ -356,7 +357,7 @@ module.exports = (server, app) => {
                                 ];
                 */ 
                 // CAR룸으로 지정된 carNumber에 출발 명령 전송.
-                device.in('CAR' + locationInfo.carNumber).emit('car_departureOrder', path_Info);
+                device.in('CAR' + locationInfo.carNumber).emit('car_departureOrder', path_data);
                 console.log(`유저로 부터 받은 출발명령 => ${carNumber}호차로 전송 완료!`)
             }
         });
