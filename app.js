@@ -28,8 +28,7 @@ app.use(express.json());
 app.use(flash());
 
 // ROUTER SETTING
-app.use('/', indexRouter);
-app.use('/status', indexRouter);
+app.use('/point', indexRouter);
 
 // ERROR HANDLERING
 app.use((req, res, next) => {
@@ -37,47 +36,6 @@ app.use((req, res, next) => {
     err.status = 404;
     next(err);
 });
-
-// TEST
-// const PathInfo = require('./schemas/car_path');
-// const update_Info = new PathInfo({
-//     'path_id' : 4,
-//     'start_point': 5,
-//     'end_point': 6,
-//     'travel_time': 13,
-//     'travel_distance': 12,
-//     'path_info': [
-//         {
-//             'lat': 35.89623422094425,
-//             'lng': 128.62013646906556
-//         },
-//         {
-//             'lat': 35.89623422094425,
-//             'lng': 128.62013646906556
-//         },
-//         {
-//             'lat': 35.89623422094425,
-//             'lng': 128.62013646906556
-//         },
-//         {
-//             'lat': 35.89623422094425,
-//             'lng': 128.62013646906556
-//         },
-//         {
-//             'lat': 35.89623422094425,
-//             'lng': 128.62013646906556
-//         },
-//         {
-//             'lat': 35.89623422094425,
-//             'lng': 128.62013646906556
-//         }
-//     ],
-// });
-// update_Info.save()
-//     .catch(err => {
-//         console.log('DB저장 실패!!', err)
-//     });
-
 
 // SERVER CONNECT
 const server = app.listen(app.get('port'), () => {

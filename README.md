@@ -136,7 +136,13 @@ Connect to AWS MongoDB
 
 ### 2020.05.30
 ```
-@ [HPDATE]
+@ [UPDATE]
 FCM 메시지에 Android Activity 포함해서 보내기.
 Socket.API 업데이트.
+```
+
+### 2020.06.02
+```
+@ [CREATE]
+1. 관리자페이지 http 통신 => car_path 추가 / 삭제 등록.
 ```

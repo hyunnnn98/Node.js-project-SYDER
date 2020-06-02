@@ -14,7 +14,7 @@ function fcm_message (title, body, token) {
         notification: {
             title,
             body,
-            clickAction: 'CarLocationActivity'
+            'clickAction': 'CarLocationActivity',
         },
         data: {
         },
@@ -106,7 +106,7 @@ module.exports = (server, app) => {
         });
 
         // Get notifications from all cars ( 모든 차로부터 도착 알림 받기 )
-        device.on('car_arrivalNotification', async (res_info) => {
+        socket.on('car_arrivalNotification', async (res_info) => {
             console.log('차량으로 부터 알림을 받았습니다!')
 
             // [ EXAMPLE ]
@@ -290,7 +290,7 @@ module.exports = (server, app) => {
             //      status           : 200,
             //      carNumber        : 1,
             //      path_id          : 3,
-            //      path_way         : reverse,
+            //      path_way         : 'reverse',
             //      start_point      : "본관"
             //      end_point        : "연서관"
             //      sender_token     : 'FDEFJLKWW@#322323LKWJKJAWWW',
@@ -366,9 +366,11 @@ module.exports = (server, app) => {
         socket.on('user_openRequest', (carNumber) => {
             console.log('유저로 부터 차량 개방 요청 받음!');
             // carNumber : 1,
-
+            const data = {
+                message: '유저로부터 개방 요청을 받았습니다.',
+            };
             // car 네임스페이스로 차량 개방 요청 전송.
-            device.to(findCar(carNumber)).emit('car_openRequest', carNumber);
+            device.to(findCar(carNumber)).emit('car_openRequest', data);
         });
 
         socket.on('disconnect', () => {
@@ -405,6 +407,7 @@ module.exports = (server, app) => {
     };
 
     function whoAmI(socketID) {
+        let selectedCar;
         for (car of cars) {
             if (car.socketID == socketID) {
                 selectedCar = car.carNumber;
@@ -415,6 +418,7 @@ module.exports = (server, app) => {
     };
 
     function findCar(carNumber) {
+        let selectedCar;
         for (car of cars) {
             if (car.carNumber == carNumber) {
                 selectedCar = car.socketID;
