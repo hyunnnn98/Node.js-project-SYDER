@@ -208,8 +208,8 @@ module.exports = (server, app) => {
 
             const status    = res.status;
             const carNumber = res.carNumber;
-            const lat       = res.car_lat;
-            const lng       = res.car_lng;
+            const car_lat   = res.car_lat;
+            const car_lng   = res.car_lng;
             const battery   = res.car_battery;
 
             const searchCar = await StatusInfo.findOne({ carNumber });
@@ -219,8 +219,8 @@ module.exports = (server, app) => {
             if (searchCar) {
                 await StatusInfo.update({ carNumber }, { $set: { 
                     status, 
-                    lat, 
-                    lng, 
+                    car_lat, 
+                    car_lng, 
                     battery 
                 }});
             } else {
@@ -228,8 +228,8 @@ module.exports = (server, app) => {
                 const update_Info = new StatusInfo({
                     carNumber,
                     status,
-                    lat,
-                    lng,
+                    car_lat,
+                    car_lng,
                     battery,
                 });
                 update_Info.save()
@@ -245,8 +245,8 @@ module.exports = (server, app) => {
             location_data = {
                 carNumber   : 1,
                 status      : 301,
-                lat         : 35.896303,
-                lng         : 128.620828,
+                car_lat     : 35.896303,
+                car_lng     : 128.620828,
                 battery     : 98,
                 call: {
                     start_point: "청문관",
