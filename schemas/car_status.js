@@ -11,11 +11,11 @@ const statusSchema = new Schema({
         type: Number,
         required: true,
     },
-    lat: {
+    car_lat: {
         type: Number,
         required: true,
     },
-    lng: {
+    car_lng: {
         type: Number,
         required: true,
     },

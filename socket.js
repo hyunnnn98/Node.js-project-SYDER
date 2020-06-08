@@ -238,8 +238,8 @@ module.exports = (server, app) => {
                 });
             }
 
-            // TODO 필요한 데이터 정보만 빼기
-            const location_data = await StatusInfo.find();
+            // TODO 필요한 데이터 정보만 빼기 여기 수정했어요!!
+            const location_data = await StatusInfo.findOne({ carNumber });
 
             /* [EXAMPLE]
             location_data = {
