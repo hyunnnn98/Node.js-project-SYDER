@@ -2,6 +2,8 @@
 
 사용기술: AWS EC2, MongoDB, Node, Express, Socket IO, Android
 
+<a href="https://github.com/kokomade98/Node.js-project-SYDER/blob/master/Socket%20API.md">차량 제어 API 문서</a>
+
 ### 2020.04.10
 ```
 1. [노드 서버] 테스트 버젼 node 서버 구축 시작.
